@@ -1,0 +1,152 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>@ViewData["Title"] - БиблиоСистема</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/LibApp.styles.css" asp-append-version="true"/>
+    <style>
+        :root {
+            --gray: #D9D9D9;
+            --blue-lt: #8AA4E5;
+            --blue-dk: #1F3B60;
+            --green: #3A7766;
+            --purple: #A876AD;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6fb;
+            color: #333;
+        }
+
+        /* NAV */
+        .lib-nav {
+            background: var(--blue-dk);
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            height: 60px;
+            gap: 24px;
+        }
+
+        .lib-nav .nav-logo {
+            color: #fff;
+            font-weight: 700;
+            font-size: 18px;
+            margin-right: auto;
+            text-decoration: none;
+        }
+
+        .lib-nav a {
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .lib-nav a:hover {
+            color: #fff;
+        }
+
+        .lib-nav a.active {
+            color: #fff;
+            border-bottom: 2px solid var(--blue-lt);
+            padding-bottom: 2px;
+        }
+
+        .lib-nav .btn-logout {
+            background: transparent;
+            border: 1.5px solid var(--gray);
+            color: var(--gray);
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .lib-nav .btn-logout:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+
+        .lib-nav .btn-login {
+            background: var(--blue-lt);
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity .2s;
+        }
+
+        .lib-nav .btn-login:hover {
+            opacity: .85;
+            color: #fff;
+        }
+
+        /* FOOTER */
+        .lib-footer {
+            background: var(--blue-dk);
+            color: var(--gray);
+            text-align: center;
+            padding: 16px;
+            font-size: 13px;
+            margin-top: 40px;
+        }
+
+        .lib-footer a {
+            color: var(--blue-lt);
+            text-decoration: none;
+        }
+
+        .lib-footer a:hover {
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <nav class="lib-nav">
+        <a class="nav-logo" asp-area="" asp-controller="Home" asp-action="Index">Библиотека</a>
+
+        <a asp-area="" asp-controller="Home" asp-action="Index">Главная</a>
+        <a asp-area="" asp-controller="Books" asp-action="Index">Каталог</a>
+        <a asp-area="" asp-controller="Home" asp-action="Privacy">Политика</a>
+
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline m-0">
+            <button type="submit" class="btn-logout">Выйти</button>
+        </form>
+        }
+        else
+        {
+        <a asp-controller="Account" asp-action="Login" class="btn-login">Войти</a>
+        }
+    </nav>
+</header>
+
+<div class="container-fluid px-4 py-4" style="max-width: 1200px; margin: 0 auto;">
+    <main role="main" class="pb-3">
+        @RenderBody()
+    </main>
+</div>
+
+<footer class="lib-footer">
+    &copy; 2026 БиблиоСистема &mdash; <a asp-area="" asp-controller="Home" asp-action="Privacy">Политика конфиденциальности</a>
+</footer>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

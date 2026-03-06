@@ -1,0 +1,47 @@
+@model IEnumerable<LibApp.Models.Book>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Книги</h1>
+
+<p>
+    <a asp-action="Create">Добавить</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Author)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Category)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Author.FullName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Category.Name)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.BookId">Изменить</a> |
+                <a asp-action="Details" asp-route-id="@item.BookId">Подробнее</a> |
+                <a asp-action="Delete" asp-route-id="@item.BookId">Удалить</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

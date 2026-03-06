@@ -1,0 +1,32 @@
+@model LibApp.Models.ExampleBook
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Создание</h1>
+
+<h4>Экземпляр книги</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="VersionBookId" class="control-label"></label>
+                <select asp-for="VersionBookId" class ="form-control" asp-items="ViewBag.VersionBookId"></select>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Создать" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Вернуться к списку</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

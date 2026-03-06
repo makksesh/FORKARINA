@@ -1,0 +1,214 @@
+/* =====================
+   CSS Variables — палитра из макета
+   ===================== */
+:root {
+  --color-light:    #D9D9D9;   /* светло-серый — фон, disabled */
+  --color-blue:     #8AA4E5;   /* голубой — акцент, secondary */
+  --color-navy:     #1F3B60;   /* тёмно-синий — primary, navbar, заголовки */
+  --color-teal:     #3A7766;   /* зелёно-бирюзовый — success, статусы */
+  --color-mauve:    #A876AD;   /* лилово-розовый — warnings, badges */
+
+  --bg-page:        #F4F6FB;   /* очень светлый голубоватый фон */
+  --bg-card:        #FFFFFF;
+  --text-main:      #1A2A3A;   /* тёмно-синий текст */
+  --text-muted:     #6B7A8D;
+  --border:         #D9D9D9;
+  --focus-ring:     #8AA4E5;
+}
+
+/* =====================
+   Base
+   ===================== */
+html {
+  font-size: 14px;
+  position: relative;
+  min-height: 100%;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+body {
+  margin-bottom: 60px;
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* =====================
+   Focus / Active states
+   ===================== */
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem var(--focus-ring);
+  border-color: var(--focus-ring);
+  outline: none;
+}
+
+/* =====================
+   Floating labels
+   ===================== */
+.form-floating > .form-control-plaintext::placeholder,
+.form-floating > .form-control::placeholder {
+  color: var(--text-muted);
+  text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder,
+.form-floating > .form-control:focus::placeholder {
+  text-align: start;
+}
+
+/* =====================
+   Inputs & Selects
+   ===================== */
+.form-control,
+.form-select {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  border-radius: 6px;
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  border-color: var(--focus-ring);
+}
+
+/* =====================
+   Buttons
+   ===================== */
+.btn-primary {
+  background-color: var(--color-navy);
+  border-color: var(--color-navy);
+  color: #fff;
+}
+.btn-primary:hover,
+.btn-primary:active {
+  background-color: #162D4A;
+  border-color: #162D4A;
+  color: #fff;
+}
+
+.btn-secondary {
+  background-color: var(--color-blue);
+  border-color: var(--color-blue);
+  color: #fff;
+}
+.btn-secondary:hover {
+  background-color: #7090CC;
+  border-color: #7090CC;
+  color: #fff;
+}
+
+.btn-success {
+  background-color: var(--color-teal);
+  border-color: var(--color-teal);
+  color: #fff;
+}
+.btn-success:hover {
+  background-color: #2E6054;
+  border-color: #2E6054;
+  color: #fff;
+}
+
+.btn-warning {
+  background-color: var(--color-mauve);
+  border-color: var(--color-mauve);
+  color: #fff;
+}
+.btn-warning:hover {
+  background-color: #8F5F95;
+  border-color: #8F5F95;
+  color: #fff;
+}
+
+.btn-outline-primary {
+  color: var(--color-navy);
+  border-color: var(--color-navy);
+}
+.btn-outline-primary:hover {
+  background-color: var(--color-navy);
+  color: #fff;
+}
+
+/* =====================
+   Navbar
+   ===================== */
+.navbar {
+  background-color: var(--color-navy) !important;
+}
+.navbar-brand,
+.navbar-nav .nav-link {
+  color: #FFFFFF !important;
+}
+.navbar-nav .nav-link:hover {
+  color: var(--color-blue) !important;
+}
+
+/* =====================
+   Cards
+   ===================== */
+.card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(31, 59, 96, 0.08);
+}
+.card-header {
+  background-color: var(--color-navy);
+  color: #fff;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0 !important;
+}
+
+/* =====================
+   Tables
+   ===================== */
+.table {
+  color: var(--text-main);
+  border-color: var(--border);
+}
+.table thead th {
+  background-color: var(--color-navy);
+  color: #fff;
+  border-color: #2A4F7A;
+}
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+  background-color: rgba(138, 164, 229, 0.08);
+}
+.table-hover > tbody > tr:hover > * {
+  background-color: rgba(138, 164, 229, 0.18);
+}
+
+/* =====================
+   Badges — статусы займов
+   ===================== */
+.badge.bg-issued    { background-color: var(--color-blue) !important; }
+.badge.bg-reserved  { background-color: var(--color-teal) !important; }
+.badge.bg-overdue   { background-color: #C0392B !important; }
+.badge.bg-returned  { background-color: #2E7D32 !important; }
+.badge.bg-cancelled { background-color: var(--color-light) !important; color: var(--text-main) !important; }
+.badge.bg-fine      { background-color: var(--color-mauve) !important; }
+
+/* =====================
+   Footer
+   ===================== */
+footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background-color: var(--color-navy);
+  color: #D9D9D9;
+  padding: 0.8rem 0;
+  text-align: center;
+  font-size: 0.85rem;
+}

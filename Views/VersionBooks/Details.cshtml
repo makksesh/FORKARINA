@@ -1,0 +1,48 @@
+@model LibApp.Models.VersionBook
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Подробнее</h1>
+
+<div>
+    <h4>Издание</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.CreateAt)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.CreateAt)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.CountSheets)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.CountSheets)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Book)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Book.Name)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Publisher)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Publisher.Name)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.VersionBookId">Изменить</a> |
+    <a asp-action="Index">Вернуться к списку</a>
+</div>

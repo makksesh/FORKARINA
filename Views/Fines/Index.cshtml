@@ -1,0 +1,65 @@
+@model IEnumerable<LibApp.Models.Fine>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Штрафы</h1>
+
+<p>
+    <a asp-action="Create">Добавить</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Amount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IssuedAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PaidAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Reason)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Reader)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Librarian)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Amount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IssuedAt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PaidAt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Reason)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Reader.Email)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Librarian.Email)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.FineId">Изменить</a> |
+                <a asp-action="Details" asp-route-id="@item.FineId">Подробнее</a> |
+                <a asp-action="Delete" asp-route-id="@item.FineId">Удалить</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

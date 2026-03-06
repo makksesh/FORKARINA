@@ -1,0 +1,54 @@
+@model LibApp.Models.VersionBook
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Изменение</h1>
+
+<h4>Издание</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="VersionBookId" />
+            <div class="form-group">
+                <label asp-for="PublisherId" class="control-label"></label>
+                <select asp-for="PublisherId" class="form-control" asp-items="ViewBag.PublisherId"></select>
+                <span asp-validation-for="PublisherId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="BookId" class="control-label"></label>
+                <select asp-for="BookId" class="form-control" asp-items="ViewBag.BookId"></select>
+                <span asp-validation-for="BookId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CreateAt" class="control-label"></label>
+                <input asp-for="CreateAt" class="form-control" />
+                <span asp-validation-for="CreateAt" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CountSheets" class="control-label"></label>
+                <input asp-for="CountSheets" class="form-control" />
+                <span asp-validation-for="CountSheets" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Сохранить" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Вернуться к списку</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

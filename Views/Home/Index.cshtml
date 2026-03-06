@@ -1,0 +1,61 @@
+﻿@{
+    ViewData["Title"] = "Главная";
+}
+
+<div class="container mt-4">
+
+    @if (User.Identity.IsAuthenticated)
+    {
+        <div class="card p-4 mb-4 shadow-sm">
+            <h4>Вы вошли в систему как, <strong>@User.Identity.Name</strong>!</h4>
+
+            <form asp-controller="Account" asp-action="Logout" method="post" class="mt-2">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                    Выйти из аккаунта
+                </button>
+            </form>
+        </div>
+
+        <h5>Разделы системы:</h5>
+        <ul class="list-group w-50">
+            <li class="list-group-item">
+                <a asp-controller="Authors" asp-action="Index">Aвторы</a>
+            </li>
+            <li class="list-group-item">
+                <a asp-controller="Books" asp-action="Index">Книги</a>
+            </li>
+            <li class="list-group-item">
+                <a asp-controller="Categories" asp-action="Index">Жанры</a>
+            </li>
+            <li class="list-group-item">
+                <a asp-controller="ExampleBooks" asp-action="Index">Экземпляры книг</a>
+            </li>
+            <li class="list-group-item">
+                <a asp-controller="Fines" asp-action="Index">Штрафы</a>
+            </li>
+            <li class="list-group-item">
+                <a asp-controller="Loans" asp-action="Index">Выдачи</a>
+            </li>
+            <li class="list-group-item">
+                <a asp-controller="Publishers" asp-action="Index">Издатели</a>
+            </li>
+            <li class="list-group-item">
+                <a asp-controller="Roles" asp-action="Index">Роли</a>
+            </li>
+            <li class="list-group-item">
+                <a asp-controller="Users" asp-action="Index">Пользователи</a>
+            </li>
+            <li class="list-group-item">
+                <a asp-controller="VersionBooks" asp-action="Index">Издания</a>
+            </li>
+        </ul>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            Пожалуйста, <a asp-controller="Accounts" asp-action="Login">войдите в систему</a>, чтобы продолжить.
+        </div>
+    }
+
+</div>

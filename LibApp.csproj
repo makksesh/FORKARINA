@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.3.9" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.3" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.3">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.3" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.3" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.3">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Views\Reports\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Reports\Delete.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Reports\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Reports\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Reports\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Authors\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Authors\Delete.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Authors\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Authors\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Authors\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Books\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Books\Delete.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Books\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Books\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Books\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Fines\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Fines\Delete.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Fines\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Fines\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Fines\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Loans\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Loans\Delete.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Loans\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Loans\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Loans\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Users\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Users\Delete.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Users\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Users\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Users\Index.cshtml" />
+    </ItemGroup>
+
+</Project>

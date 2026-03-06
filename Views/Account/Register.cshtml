@@ -1,0 +1,54 @@
+@model LibApp.Models.ViewModels.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Регистрация";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <h2 class="mb-4">Регистрация</h2>
+
+        <form asp-action="Register" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="Login" class="form-label">Логин</label>
+                <input asp-for="Login" class="form-control" />
+                <span asp-validation-for="Login" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label">Email</label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="FullName" class="form-label">ФИО</label>
+                <input asp-for="FullName" class="form-control" />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="PhoneNumber" class="form-label">Телефон (необязательно)</label>
+                <input asp-for="PhoneNumber" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label">Пароль</label>
+                <input asp-for="Password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-success w-100">Зарегистрироваться</button>
+        </form>
+
+        <div class="mt-3 text-center">
+            <a asp-action="Login">Уже есть аккаунт? Войти</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

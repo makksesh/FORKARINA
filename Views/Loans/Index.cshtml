@@ -1,0 +1,65 @@
+@model IEnumerable<LibApp.Models.Loan>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Выдачи</h1>
+
+<p>
+    <a asp-action="Create">Добавить</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.IssuedAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DueDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ExtensionsCount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ReturnedAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.User)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ExampleBook)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.IssuedAt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DueDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ExtensionsCount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ReturnedAt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.User.Email)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ExampleBook.ExampleBookId)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.LoanId">Изменить</a> |
+                <a asp-action="Details" asp-route-id="@item.LoanId">Подробнее</a> |
+                <a asp-action="Delete" asp-route-id="@item.LoanId">Удалить</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
