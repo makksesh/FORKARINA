@@ -194,30 +194,93 @@ public static class DevSeed
 
     // ─── ExampleBooks ─────────────────────────────────────────────
     private static void SeedExampleBooks(AppDbContext context)
-    {
-        if (context.ExampleBooks.Any()) return;
-        
-        var voyna        = context.VersionBooks.First(v => v.Name == "Война и мир. Полное издание").VersionBookId;
-        var anna         = context.VersionBooks.First(v => v.Name == "Анна Каренина. Юбилейное издание").VersionBookId;
-        var prestuplenie = context.VersionBooks.First(v => v.Name == "Преступление и наказание").VersionBookId;
-        var osnovanie    = context.VersionBooks.First(v => v.Name == "Основание. Научное издание").VersionBookId;
-        var ubiystvo     = context.VersionBooks.First(v => v.Name == "Убийство в Восточном экспрессе").VersionBookId;
-        var master       = context.VersionBooks.First(v => v.Name == "Мастер и Маргарита. Классика").VersionBookId;
-        
-        context.ExampleBooks.AddRange(
-            new ExampleBook { VersionBookId = voyna },
-            new ExampleBook { VersionBookId = voyna },
-            new ExampleBook { VersionBookId = anna  },
-            new ExampleBook { VersionBookId = prestuplenie },
-            new ExampleBook { VersionBookId = prestuplenie },
-            new ExampleBook { VersionBookId = osnovanie },
-            new ExampleBook { VersionBookId = ubiystvo },
-            new ExampleBook { VersionBookId = master },
-            new ExampleBook { VersionBookId = master },
-            new ExampleBook { VersionBookId = anna }
-        );
-        context.SaveChanges();
-    }
+{
+    if (context.ExampleBooks.Any()) return;
+
+    var voyna        = context.VersionBooks.First(v => v.Name == "Война и мир. Полное издание").VersionBookId;
+    var anna         = context.VersionBooks.First(v => v.Name == "Анна Каренина. Юбилейное издание").VersionBookId;
+    var prestuplenie = context.VersionBooks.First(v => v.Name == "Преступление и наказание").VersionBookId;
+    var osnovanie    = context.VersionBooks.First(v => v.Name == "Основание. Научное издание").VersionBookId;
+    var ubiystvo     = context.VersionBooks.First(v => v.Name == "Убийство в Восточном экспрессе").VersionBookId;
+    var master       = context.VersionBooks.First(v => v.Name == "Мастер и Маргарита. Классика").VersionBookId;
+
+    context.ExampleBooks.AddRange(
+        // [0] Война и мир — 1й экземпляр (был выдан reader1, возвращён → Available)
+        new ExampleBook
+        {
+            VersionBookId = voyna,
+            ShelfCode     = "A-01-1",
+            Status        = BookStatus.Available,
+            Condition     = BookCondition.Good
+        },
+        // [1] Война и мир — 2й экземпляр (свободен)
+        new ExampleBook
+        {
+            VersionBookId = voyna,
+            ShelfCode     = "A-01-2",
+            Status        = BookStatus.Available,
+            Condition     = BookCondition.New
+        },
+        // [2] Анна Каренина — 1й экземпляр (был выдан reader2 с просрочкой, возвращён)
+        new ExampleBook
+        {
+            VersionBookId = anna,
+            ShelfCode     = "A-02-1",
+            Status        = BookStatus.Available,
+            Condition     = BookCondition.Fair   // потрепалась после просрочки
+        },
+        // [3] Преступление и наказание — 1й экземпляр (свободен)
+        new ExampleBook
+        {
+            VersionBookId = prestuplenie,
+            ShelfCode     = "B-01-1",
+            Status        = BookStatus.Available,
+            Condition     = BookCondition.Good
+        },
+        // [4] Преступление и наказание — 2й экземпляр (на руках у reader3, просрочен)
+        new ExampleBook
+        {
+            VersionBookId = prestuplenie,
+            ShelfCode     = "B-01-2",
+            Status        = BookStatus.OnLoan,
+            Condition     = BookCondition.Good
+        },
+        // [5] Основание — 1й экземпляр (свободен)
+        new ExampleBook
+        {
+            VersionBookId = osnovanie,
+            ShelfCode     = "B-02-1",
+            Status        = BookStatus.Available,
+            Condition     = BookCondition.New
+        },
+        // [6] Убийство в Восточном экспрессе (на руках у reader1)
+        new ExampleBook
+        {
+            VersionBookId = ubiystvo,
+            ShelfCode     = "C-01-1",
+            Status        = BookStatus.OnLoan,
+            Condition     = BookCondition.Good
+        },
+        // [7] Мастер и Маргарита — 1й экземпляр (на реставрации)
+        new ExampleBook
+        {
+            VersionBookId = master,
+            ShelfCode     = "C-02-1",
+            Status        = BookStatus.Restoration,
+            Condition     = BookCondition.Poor
+        },
+        // [8] Мастер и Маргарита — 2й экземпляр (был выдан reader2, возвращён → Available)
+        new ExampleBook
+        {
+            VersionBookId = master,
+            ShelfCode     = "C-02-2",
+            Status        = BookStatus.Available,
+            Condition     = BookCondition.Good
+        }
+    );
+    context.SaveChanges();
+}
+
 
     // ─── Loans ────────────────────────────────────────────────────
 private static void SeedLoans(AppDbContext context)
