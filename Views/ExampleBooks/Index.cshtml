@@ -1,35 +1,165 @@
-@model IEnumerable<LibApp.Models.ExampleBook>
+@model IEnumerable<LibApp.Models.ViewModels.ExampleBookCatalogItem>
+@using System.ComponentModel.DataAnnotations
+@using LibApp.Helpers
+@using LibApp.Models
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Экземпляры";
+    var categories = ViewBag.Categories as List<string> ?? new();
+    var statuses   = ViewBag.Statuses   as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? new();
 }
 
-<h1>Экземпляры книг</h1>
+<div class="d-flex justify-content-between align-items-center mb-1">
+    <div>
+        <h3 class="fw-bold mb-0" style="color: var(--blue-dk);">📦 Физические экземпляры</h3>
+        <span class="text-muted small">Управление фондом библиотеки</span>
+    </div>
+    <a asp-action="Create" class="btn btn-success btn-sm">+ Добавить экземпляр</a>
+</div>
 
-<p>
-    <a asp-action="Create">Добавить</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.VersionBook)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.VersionBook.Name)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.ExampleBookId">Изменить</a> |
-                <a asp-action="Details" asp-route-id="@item.ExampleBookId">Подробнее</a> |
-                <a asp-action="Delete" asp-route-id="@item.ExampleBookId">Удалить</a>
-            </td>
-        </tr>
+@* ── Фильтры ── *@
+<form method="get" class="row g-2 my-3 align-items-end">
+    <div class="col-md-4">
+        <label class="form-label small text-muted">Поиск по ID, названию или автору</label>
+        <input type="text" name="search" value="@ViewBag.Search"
+               class="form-control form-control-sm"
+               placeholder="Например: 42 или Толстой" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label small text-muted">Жанр</label>
+        <select name="category" class="form-select form-select-sm">
+            <option value="">Все жанры</option>
+            @foreach (var cat in categories)
+            {
+                <option value="@cat" selected="@(ViewBag.SelectedCategory == cat ? "selected" : null)">
+                    @cat
+                </option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small text-muted">Статус</label>
+        <select name="status" class="form-select form-select-sm">
+            <option value="">Все статусы</option>
+            @foreach (var s in statuses)
+            {
+                <option value="@s.Value"
+                        selected="@(ViewBag.SelectedStatus == s.Value ? "selected" : null)">
+                    @s.Text
+                </option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3 d-flex gap-2">
+        <button type="submit" class="btn btn-primary btn-sm w-100">Найти</button>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Сбросить</a>
+    </div>
+</form>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        ⚠️ @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
 }
-    </tbody>
-</table>
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        ✅ @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info mt-3">Экземпляры не найдены. Попробуйте изменить фильтры.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle shadow-sm rounded overflow-hidden">
+            <thead style="background: var(--blue-dk); color:#fff;">
+                <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>Автор</th>
+                    <th>Жанр</th>
+                    <th>Полка</th>
+                    <th>Статус</th>
+                    <th>Состояние</th>
+                    <th>Выдан?</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="font-monospace text-muted">@item.ExampleBookId</td>
+                        <td class="fw-semibold">@item.Title</td>
+                        <td>@item.Author</td>
+                        <td>@item.Category</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(item.ShelfCode))
+                            {
+                                <span class="badge bg-light text-dark border font-monospace">
+                                    📍 @item.ShelfCode
+                                </span>
+                            }
+                            else { <span class="text-muted">—</span> }
+                        </td>
+                        <td>
+                            @{
+                                var (statusClass, statusIcon) = item.Status switch
+                                {
+                                    BookStatus.Available    => ("success",   "✅"),
+                                    BookStatus.OnLoan       => ("primary",   "📤"),
+                                    BookStatus.Reserved     => ("warning",   "🔖"),
+                                    BookStatus.Restoration  => ("secondary", "🔧"),
+                                    BookStatus.WriteOff     => ("dark",      "🗑️"),
+                                    BookStatus.Lost         => ("danger",    "❓"),
+                                    _                       => ("secondary", "")
+                                };
+                            }
+                            <span class="badge bg-@statusClass">@statusIcon @item.Status.GetDisplayName()</span>
+                        </td>
+                        <td>
+                            @{
+                                var condClass = item.Condition switch
+                                {
+                                    BookCondition.New     => "success",
+                                    BookCondition.Good    => "info",
+                                    BookCondition.Fair    => "warning",
+                                    BookCondition.Poor    => "danger",
+                                    BookCondition.Damaged => "dark",
+                                    _                    => "secondary"
+                                };
+                            }
+                            <span class="badge bg-@condClass">@item.Condition.GetDisplayName()</span>
+                        </td>
+                        <td>
+                            @if (item.IsOnLoan)
+                            {
+                                <span class="badge bg-danger">На руках</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">Свободен</span>
+                            }
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@item.ExampleBookId"
+                               class="btn btn-outline-secondary btn-sm">🔍</a>
+                            <a asp-action="Edit" asp-route-id="@item.ExampleBookId"
+                               class="btn btn-outline-primary btn-sm">✏️</a>
+                            <a asp-action="Delete" asp-route-id="@item.ExampleBookId"
+                               class="btn btn-outline-danger btn-sm"
+                               onclick="return confirm('Удалить экземпляр #@item.ExampleBookId?')">🗑️</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

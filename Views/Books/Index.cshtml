@@ -1,47 +1,59 @@
 @model IEnumerable<LibApp.Models.Book>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Книги";
 }
 
-<h1>Книги</h1>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="fw-bold mb-0" style="color: var(--blue-dk);">📖 Книги</h3>
+        <span class="text-muted small">Каталог произведений</span>
+    </div>
+    <a asp-action="Create" class="btn btn-success btn-sm">+ Добавить</a>
+</div>
 
-<p>
-    <a asp-action="Create">Добавить</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Author)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Category)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Author.FullName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Category.Name)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.BookId">Изменить</a> |
-                <a asp-action="Details" asp-route-id="@item.BookId">Подробнее</a> |
-                <a asp-action="Delete" asp-route-id="@item.BookId">Удалить</a>
-            </td>
-        </tr>
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Книги не найдены.</div>
 }
-    </tbody>
-</table>
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle shadow-sm rounded overflow-hidden">
+            <thead style="background: var(--blue-dk); color:#fff;">
+                <tr>
+                    <th>ID</th>
+                    <th>@Html.DisplayNameFor(m => m.Name)</th>
+                    <th>@Html.DisplayNameFor(m => m.Author)</th>
+                    <th>@Html.DisplayNameFor(m => m.Category)</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="text-muted font-monospace">@item.BookId</td>
+                        <td class="fw-semibold">@item.Name</td>
+                        <td>@item.Author?.FullName</td>
+                        <td>
+                            <span class="badge bg-light text-dark border">
+                                @item.Category?.Name
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a asp-action="Details" asp-route-id="@item.BookId"
+                                   class="btn btn-outline-secondary btn-sm">🔍</a>
+                                <a asp-action="Edit" asp-route-id="@item.BookId"
+                                   class="btn btn-outline-primary btn-sm">✏️</a>
+                                <a asp-action="Delete" asp-route-id="@item.BookId"
+                                   class="btn btn-outline-danger btn-sm">🗑️</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

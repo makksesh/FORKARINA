@@ -1,65 +1,80 @@
 @model IEnumerable<LibApp.Models.Fine>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Штрафы";
 }
 
-<h1>Штрафы</h1>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="fw-bold mb-0" style="color: var(--blue-dk);">💸 Штрафы</h3>
+        <span class="text-muted small">Журнал выставленных штрафов</span>
+    </div>
+    <a asp-action="Create" class="btn btn-success btn-sm">+ Выставить штраф</a>
+</div>
 
-<p>
-    <a asp-action="Create">Добавить</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Amount)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IssuedAt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PaidAt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Reason)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Reader)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Librarian)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Amount)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IssuedAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PaidAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Reason)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Reader.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Librarian.Email)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.FineId">Изменить</a> |
-                <a asp-action="Details" asp-route-id="@item.FineId">Подробнее</a> |
-                <a asp-action="Delete" asp-route-id="@item.FineId">Удалить</a>
-            </td>
-        </tr>
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Штрафы не найдены.</div>
 }
-    </tbody>
-</table>
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle shadow-sm rounded overflow-hidden">
+            <thead style="background: var(--blue-dk); color:#fff;">
+                <tr>
+                    <th>ID</th>
+                    <th>@Html.DisplayNameFor(m => m.Reader)</th>
+                    <th>@Html.DisplayNameFor(m => m.Librarian)</th>
+                    <th>@Html.DisplayNameFor(m => m.Amount)</th>
+                    <th>@Html.DisplayNameFor(m => m.Reason)</th>
+                    <th>@Html.DisplayNameFor(m => m.IssuedAt)</th>
+                    <th>@Html.DisplayNameFor(m => m.PaidAt)</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    var isPaid = item.PaidAt.HasValue;
+                    <tr>
+                        <td class="text-muted font-monospace">@item.FineId</td>
+                        <td>
+                            <span class="badge bg-secondary font-monospace">#@item.ReaderId</span>
+                            <span class="text-muted small ms-1">@item.Reader?.FullName</span>
+                        </td>
+                        <td class="text-muted small">@item.Librarian?.FullName</td>
+                        <td>
+                            <span class="fw-semibold @(isPaid ? "text-muted" : "text-danger")">
+                                @item.Amount ₽
+                            </span>
+                        </td>
+                        <td class="text-muted small">@(item.Reason ?? "—")</td>
+                        <td class="text-muted small">@item.IssuedAt.ToString("dd.MM.yyyy")</td>
+                        <td>
+                            @if (isPaid)
+                            {
+                                <span class="badge bg-success">
+                                    ✅ @item.PaidAt!.Value.ToString("dd.MM.yyyy")
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">❌ Не оплачен</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a asp-action="Details" asp-route-id="@item.FineId"
+                                   class="btn btn-outline-secondary btn-sm">🔍</a>
+                                <a asp-action="Edit" asp-route-id="@item.FineId"
+                                   class="btn btn-outline-primary btn-sm">✏️</a>
+                                <a asp-action="Delete" asp-route-id="@item.FineId"
+                                   class="btn btn-outline-danger btn-sm">🗑️</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

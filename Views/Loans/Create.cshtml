@@ -1,56 +1,73 @@
 @model LibApp.Models.Loan
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Новая выдача";
 }
 
-<h1>Создание</h1>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="fw-bold mb-0" style="color: var(--blue-dk);">📋 Создать выдачу</h3>
+        <span class="text-muted small">Ручная регистрация выдачи книги читателю</span>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← Назад к списку</a>
+</div>
 
-<h4>Выдача</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
+<div class="card shadow-sm" style="max-width: 580px;">
+    <div class="card-body">
         <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="UserId" class="control-label"></label>
-                <select asp-for="UserId" class ="form-control" asp-items="ViewBag.UserId"></select>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2"></div>
+
+            <div class="mb-3">
+                <label asp-for="UserId" class="form-label fw-semibold"></label>
+                <select asp-for="UserId" class="form-select" asp-items="ViewBag.UserId">
+                    <option value="">— Выберите читателя —</option>
+                </select>
+                <span asp-validation-for="UserId" class="text-danger small"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="ExampleBookId" class="control-label"></label>
-                <select asp-for="ExampleBookId" class ="form-control" asp-items="ViewBag.ExampleBookId"></select>
+
+            <div class="mb-3">
+                <label asp-for="ExampleBookId" class="form-label fw-semibold"></label>
+                <select asp-for="ExampleBookId" class="form-select" asp-items="ViewBag.ExampleBookId">
+                    <option value="">— Выберите экземпляр —</option>
+                </select>
+                <span asp-validation-for="ExampleBookId" class="text-danger small"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="IssuedAt" class="control-label"></label>
-                <input asp-for="IssuedAt" class="form-control" />
-                <span asp-validation-for="IssuedAt" class="text-danger"></span>
+
+            <div class="row g-3 mb-3">
+                <div class="col-6">
+                    <label asp-for="IssuedAt" class="form-label fw-semibold"></label>
+                    <input asp-for="IssuedAt" type="datetime-local" class="form-control" />
+                    <span asp-validation-for="IssuedAt" class="text-danger small"></span>
+                </div>
+                <div class="col-6">
+                    <label asp-for="DueDate" class="form-label fw-semibold"></label>
+                    <input asp-for="DueDate" type="datetime-local" class="form-control" />
+                    <span asp-validation-for="DueDate" class="text-danger small"></span>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="DueDate" class="control-label"></label>
-                <input asp-for="DueDate" class="form-control" />
-                <span asp-validation-for="DueDate" class="text-danger"></span>
+
+            <div class="row g-3 mb-4">
+                <div class="col-6">
+                    <label asp-for="ExtensionsCount" class="form-label fw-semibold"></label>
+                    <input asp-for="ExtensionsCount" type="number" min="0" class="form-control" />
+                    <span asp-validation-for="ExtensionsCount" class="text-danger small"></span>
+                </div>
+                <div class="col-6">
+                    <label asp-for="ReturnedAt" class="form-label fw-semibold"></label>
+                    <input asp-for="ReturnedAt" type="datetime-local" class="form-control" />
+                    <div class="form-text">Оставьте пустым, если ещё не возвращена</div>
+                    <span asp-validation-for="ReturnedAt" class="text-danger small"></span>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="ExtensionsCount" class="control-label"></label>
-                <input asp-for="ExtensionsCount" class="form-control" />
-                <span asp-validation-for="ExtensionsCount" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ReturnedAt" class="control-label"></label>
-                <input asp-for="ReturnedAt" class="form-control" />
-                <span asp-validation-for="ReturnedAt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Создать" class="btn btn-primary" />
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success w-100">✅ Создать</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Отмена</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Вернуться к списку</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

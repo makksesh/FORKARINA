@@ -1,24 +1,84 @@
 @model LibApp.Models.ExampleBook
+@using LibApp.Models
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Детали экземпляра";
+
+    var (statusClass, statusIcon) = Model.Status switch
+    {
+        BookStatus.Available   => ("success",   "✅"),
+        BookStatus.OnLoan      => ("primary",   "📤"),
+        BookStatus.Reserved    => ("warning",   "🔖"),
+        BookStatus.Restoration => ("secondary", "🔧"),
+        BookStatus.WriteOff    => ("dark",      "🗑️"),
+        BookStatus.Lost        => ("danger",    "❓"),
+        _                      => ("secondary", "")
+    };
+
+    var condClass = Model.Condition switch
+    {
+        BookCondition.New     => "success",
+        BookCondition.Good    => "info",
+        BookCondition.Fair    => "warning",
+        BookCondition.Poor    => "danger",
+        BookCondition.Damaged => "dark",
+        _                    => "secondary"
+    };
 }
 
-<h1>Подробнее</h1>
-
-<div>
-    <h4>Экземпляр книги</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.VersionBook)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.VersionBook.Name)
-        </dd>
-    </dl>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="fw-bold mb-0" style="color: var(--blue-dk);">🔍 Экземпляр книги</h3>
+        <span class="text-muted small font-monospace">ID: @Model.ExampleBookId</span>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.ExampleBookId"
+           class="btn btn-outline-primary btn-sm">✏️ Изменить</a>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← К списку</a>
+    </div>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.ExampleBookId">Изменить</a> |
-    <a asp-action="Index">Вернуться к списку</a>
+
+<div class="card shadow-sm" style="max-width: 560px;">
+    <div class="card-body">
+
+        <div class="mb-3 pb-3 border-bottom">
+            <div class="text-muted small fw-semibold text-uppercase mb-1"
+                 style="letter-spacing:.05em;">Издание</div>
+            <div class="fw-semibold fs-5">@Model.VersionBook?.Name</div>
+            <div class="text-muted small">
+                @Model.VersionBook?.Book?.Author?.FullName
+                &nbsp;·&nbsp;
+                @Model.VersionBook?.Book?.Category?.Name
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-6">
+                <div class="text-muted small fw-semibold text-uppercase mb-1"
+                     style="letter-spacing:.05em;">Полка</div>
+                @if (!string.IsNullOrEmpty(Model.ShelfCode))
+                {
+                    <span class="badge bg-light text-dark border font-monospace fs-6">
+                        📍 @Model.ShelfCode
+                    </span>
+                }
+                else
+                {
+                    <span class="text-muted">Не указана</span>
+                }
+            </div>
+
+            <div class="col-6">
+                <div class="text-muted small fw-semibold text-uppercase mb-1"
+                     style="letter-spacing:.05em;">Статус</div>
+                <span class="badge bg-@statusClass fs-6">@statusIcon @Model.Status</span>
+            </div>
+
+            <div class="col-6">
+                <div class="text-muted small fw-semibold text-uppercase mb-1"
+                     style="letter-spacing:.05em;">Состояние</div>
+                <span class="badge bg-@condClass fs-6">@Model.Condition</span>
+            </div>
+        </div>
+    </div>
 </div>

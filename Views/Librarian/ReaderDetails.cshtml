@@ -37,6 +37,7 @@ else
                 <th>Книга</th>
                 <th>Автор</th>
                 <th>Экземпляр ID</th>
+                <th>Местонахождение</th>
                 <th>Дата брони</th>
                 <th>Действие</th>
             </tr>
@@ -47,7 +48,19 @@ else
                 <tr>
                     <td>@loan.ExampleBook.VersionBook.Book.Name</td>
                     <td>@loan.ExampleBook.VersionBook.Book.Author.FullName</td>
-                    <td>@loan.ExampleBookId</td>
+                    <td class="font-monospace">@loan.ExampleBookId</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(loan.ExampleBook.ShelfCode))
+                        {
+                            <span class="badge bg-light text-dark border font-monospace">
+                                📍 @loan.ExampleBook.ShelfCode
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted small">Не указано</span>
+                        }
+                    </td>
                     <td>@loan.IssuedAt.ToLocalTime().ToString("dd.MM.yyyy")</td>
                     <td>
                         <button class="btn btn-sm btn-warning"
@@ -56,7 +69,6 @@ else
                             Выдать
                         </button>
 
-                        <!-- Модалка: ввод DueDate для этой брони -->
                         <div class="modal fade" id="issueReservedModal-@loan.LoanId" tabindex="-1">
                             <div class="modal-dialog">
                                 <div class="modal-content">
@@ -66,16 +78,31 @@ else
                                     </div>
                                     <form asp-action="IssueReserved" method="post">
                                         @Html.AntiForgeryToken()
-                                        <input type="hidden" name="loanId" value="@loan.LoanId" />
-                                        <input type="hidden" name="readerId" value="@Model.Reader.UserId" />
+                                        <input type="hidden" name="loanId"    value="@loan.LoanId" />
+                                        <input type="hidden" name="readerId"  value="@Model.Reader.UserId" />
                                         <div class="modal-body">
+                                            <p class="text-muted mb-2">
+                                                Книга: <strong>@loan.ExampleBook.VersionBook.Book.Name</strong>
+                                            </p>
+                                            @if (!string.IsNullOrEmpty(loan.ExampleBook.ShelfCode))
+                                            {
+                                                <p class="text-muted mb-3">
+                                                    Полка:
+                                                    <span class="badge bg-light text-dark border font-monospace">
+                                                        📍 @loan.ExampleBook.ShelfCode
+                                                    </span>
+                                                </p>
+                                            }
                                             <label class="form-label">Дата возврата (DueDate)</label>
                                             <input type="date" name="dueDate" class="form-control" required
                                                    min="@DateTime.Today.AddDays(10).ToString("yyyy-MM-dd")" />
-
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="submit" class="btn btn-warning">Подтвердить выдачу</button>
+                                            <button type="button" class="btn btn-outline-secondary"
+                                                    data-bs-dismiss="modal">Отмена</button>
+                                            <button type="submit" class="btn btn-warning">
+                                                Подтвердить выдачу
+                                            </button>
                                         </div>
                                     </form>
                                 </div>
@@ -87,6 +114,7 @@ else
         </tbody>
     </table>
 }
+
 
 <h4 class="mt-4">Выданные книги</h4>
 @if (!Model.ActiveLoans.Any())

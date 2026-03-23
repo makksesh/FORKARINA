@@ -10,7 +10,7 @@
 <div class="container mt-4" style="max-width: 680px;">
     <h4 class="mb-4">📚 Приём книги</h4>
 
-    @* Карточка выдачи — подсвечивается желтым если просрочка *@
+    @* Карточка выдачи *@
     <div class="card mb-4 @(Model.IsOverdue ? "border-warning" : "border-success")"
          style="@(Model.IsOverdue ? "background-color: #fffbe6;" : "")">
         <div class="card-header d-flex justify-content-between align-items-center
@@ -29,19 +29,14 @@
             <dl class="row mb-0">
                 <dt class="col-sm-4">Книга</dt>
                 <dd class="col-sm-8">@(book?.Name ?? "—")</dd>
-
                 <dt class="col-sm-4">Автор</dt>
                 <dd class="col-sm-8">@(author?.FullName ?? "—")</dd>
-
                 <dt class="col-sm-4">Издательство</dt>
                 <dd class="col-sm-8">@(publisher?.Name ?? "—")</dd>
-
                 <dt class="col-sm-4">Читатель</dt>
                 <dd class="col-sm-8">@loan.User?.FullName (@loan.User?.Email)</dd>
-
                 <dt class="col-sm-4">Выдана</dt>
                 <dd class="col-sm-8">@loan.IssuedAt.ToLocalTime().ToString("dd.MM.yyyy")</dd>
-
                 <dt class="col-sm-4">Срок возврата</dt>
                 <dd class="col-sm-8 @(Model.IsOverdue ? "text-danger fw-bold" : "")">
                     @loan.DueDate.ToLocalTime().ToString("dd.MM.yyyy")
@@ -54,71 +49,119 @@
         </div>
     </div>
 
-    @* Блок штрафа — показывается только при просрочке *@
-    @if (Model.IsOverdue)
-    {
-        <div class="card border-danger mb-4">
-            <div class="card-header bg-danger text-white">
-                <strong>💰 Начислить штраф</strong>
-            </div>
-            <div class="card-body">
-                <form asp-action="ReturnWithFine" asp-controller="ReturnBook" method="post" id="fineForm">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="loanId" value="@loan.LoanId" />
+    @* === ЕДИНАЯ ФОРМА === *@
+    <form asp-action="ReturnBook" asp-controller="ReturnBook" method="post" id="mainForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="loanId" value="@loan.LoanId" />
 
+        @* Блок просрочки — без кнопки *@
+        @if (Model.IsOverdue)
+        {
+            <div class="card border-danger mb-4">
+                <div class="card-header bg-danger text-white">
+                    <strong>💰 Штраф за просрочку</strong>
+                </div>
+                <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label">Цена за 1 просроченный день (₽)</label>
                         <input type="number" id="pricePerDay" name="pricePerDay"
                                class="form-control" min="0.01" step="0.01"
-                               placeholder="Например: 10.00" required
+                               placeholder="Например: 10.00"
                                oninput="calcFine()" />
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label">Количество просроченных дней</label>
                         <input type="text" class="form-control bg-light"
                                value="@Model.OverdueDays" readonly />
                     </div>
-
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Итого штраф (₽)</label>
-                        <input type="text" id="totalFine" class="form-control bg-warning fw-bold"
+                        <label class="form-label fw-bold">Итого штраф за просрочку (₽)</label>
+                        <input type="text" id="totalFine"
+                               class="form-control bg-warning fw-bold"
                                value="0.00" readonly />
                     </div>
+                </div>
+            </div>
+        }
 
-                    <button type="submit" class="btn btn-danger w-100">
-                        💳 Внести штраф и принять книгу
-                    </button>
-                </form>
+        @* Блок повреждения — всегда виден *@
+        <div class="card border-warning mb-4">
+            <div class="card-header bg-warning text-dark">
+                <strong>🔍 Состояние книги при возврате</strong>
+            </div>
+            <div class="card-body">
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="isDamaged"
+                           name="isDamaged" value="true"
+                           onchange="toggleDamageBlock(); updateSubmitButton()" />
+                    <label class="form-check-label fw-bold text-danger" for="isDamaged">
+                        Книга возвращена с повреждениями
+                    </label>
+                </div>
+
+                <div id="damageBlock" style="display:none;">
+                    <div class="mb-3">
+                        <label class="form-label">Новое состояние книги</label>
+                        <select name="newCondition" class="form-select">
+                            <option value="Fair">Удовлетворительное</option>
+                            <option value="Poor">Плохое</option>
+                            <option value="Damaged">Повреждена</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Комментарий к повреждению</label>
+                        <textarea name="damageComment" class="form-control" rows="2"
+                                  placeholder="Опишите повреждение: порваны страницы, следы воды и т.п."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Штраф за повреждение (₽)</label>
+                        <input type="number" name="damageFineAmount" class="form-control"
+                               min="0" step="0.01" placeholder="0.00" />
+                        <div class="form-text">Оставьте 0, если штраф не начисляется</div>
+                    </div>
+                </div>
             </div>
         </div>
-    }
 
-    @* Кнопка приёма без штрафа — всегда доступна *@
-    <div class="card border-secondary">
-        <div class="card-body">
-            <p class="text-muted mb-3">
-                Библиотекарь может принять книгу без начисления штрафа.
-                Книга вернётся в список доступных.
-            </p>
-            <form asp-action="ReturnWithoutFine" asp-controller="ReturnBook" method="post">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="loanId" value="@loan.LoanId" />
-                <button type="submit" class="btn btn-outline-secondary w-100">
-                    ✅ Принять книгу без штрафа
-                </button>
-            </form>
+        @* === ЕДИНАЯ КНОПКА === *@
+        <div class="d-grid gap-2">
+            @* Кнопка со штрафом — активна если просрочка ИЛИ повреждение *@
+            <button type="submit" id="btnWithFine"
+                    class="btn btn-danger w-100"
+                    @(Model.IsOverdue ? "" : "disabled")>
+                💳 Внести штраф и принять книгу
+            </button>
+
+            @* Кнопка без штрафа — всегда активна *@
+            <button type="submit" id="btnWithoutFine"
+                    name="skipFine" value="true"
+                    class="btn btn-outline-secondary w-100">
+                ✅ Принять книгу без штрафа
+            </button>
         </div>
-    </div>
+    </form>
 </div>
 
 @section Scripts {
     <script>
+        const isOverdue = @Json.Serialize(Model.IsOverdue);
+
         function calcFine() {
-            const price = parseFloat(document.getElementById('pricePerDay').value) || 0;
+            const price = parseFloat(document.getElementById('pricePerDay')?.value) || 0;
             const days = @Model.OverdueDays;
-            const total = (price * days).toFixed(2);
-            document.getElementById('totalFine').value = total;
+            document.getElementById('totalFine').value = (price * days).toFixed(2);
+        }
+
+        function toggleDamageBlock() {
+            const checked = document.getElementById('isDamaged').checked;
+            document.getElementById('damageBlock').style.display = checked ? 'block' : 'none';
+        }
+
+        function updateSubmitButton() {
+            const isDamaged = document.getElementById('isDamaged').checked;
+            const btn = document.getElementById('btnWithFine');
+            // Активна если: есть просрочка ИЛИ отмечено повреждение
+            btn.disabled = !(isOverdue || isDamaged);
         }
     </script>
 }

@@ -75,7 +75,10 @@ public class LibrarianController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> IssueReserved(long loanId, DateTime dueDate, long readerId)
     {
-        var loan = await _db.Loans.FindAsync(loanId);
+        var loan = await _db.Loans
+            .Include(l => l.ExampleBook)   // ← подгружаем ExampleBook явно
+            .FirstOrDefaultAsync(l => l.LoanId == loanId);
+
         if (loan == null)
         {
             TempData["Error"] = "Резервация не найдена.";
@@ -89,19 +92,20 @@ public class LibrarianController : Controller
             return RedirectToAction(nameof(FindReaderGet), new { readerId });
         }
 
-        loan.DueDate = DateTime.SpecifyKind(dueDate, DateTimeKind.Utc);
-        loan.IssuedAt = DateTime.UtcNow;
+        loan.DueDate              = DateTime.SpecifyKind(dueDate, DateTimeKind.Utc);
+        loan.IssuedAt             = DateTime.UtcNow;
+        loan.ExampleBook.Status   = BookStatus.OnLoan; 
+
         await _db.SaveChangesAsync();
 
         TempData["Success"] = "Книга успешно выдана.";
         return RedirectToAction(nameof(FindReaderGet), new { readerId });
     }
 
-    // GET-версия поиска для редиректа после действий
+    // GET-версия поиска
     [HttpGet]
     public async Task<IActionResult> FindReaderGet(long readerId)
     {
-        // Симулируем POST через GET для редиректа
         return await FindReader(readerId);
     }
 
@@ -158,6 +162,7 @@ public class LibrarianController : Controller
             ReturnedAt = null
         };
 
+        example.Status = BookStatus.OnLoan;
         _db.Loans.Add(loan);
         await _db.SaveChangesAsync();
 
@@ -196,19 +201,27 @@ public class LibrarianController : Controller
 
         var model = versions.Select(v =>
         {
-            var freeExample = v.ExampleBooks
+            // Экземпляры, которые физически могут быть выданы
+            var issuable = v.ExampleBooks
+                .Where(eb => eb.Status != BookStatus.Restoration
+                             && eb.Status != BookStatus.WriteOff
+                             && eb.Status != BookStatus.Lost)
+                .ToList();
+
+            var freeExample = issuable
                 .FirstOrDefault(eb => !busyIds.Contains(eb.ExampleBookId));
 
             return new IssueBookCatalogItem
             {
-                VersionBookId    = v.VersionBookId,
-                Title            = v.Book.Name,
-                Author           = v.Book.Author.FullName,
-                Category         = v.Book.Category.Name,
-                Year             = v.CreateAt.Year,
-                TotalExamples    = v.ExampleBooks.Count,
-                AvailableExamples = v.ExampleBooks.Count(eb => !busyIds.Contains(eb.ExampleBookId)),
-                FreeExampleBookId = freeExample?.ExampleBookId
+                VersionBookId     = v.VersionBookId,
+                Title             = v.Book.Name,
+                Author            = v.Book.Author.FullName,
+                Category          = v.Book.Category.Name,
+                Year              = v.CreateAt.Year,
+                TotalExamples     = v.ExampleBooks.Count,
+                AvailableExamples = issuable.Count(eb => !busyIds.Contains(eb.ExampleBookId)),
+                FreeExampleBookId = freeExample?.ExampleBookId,
+                ShelfCode         = freeExample?.ShelfCode
             };
         }).ToList();
 

@@ -1,76 +1,147 @@
 @model IEnumerable<LibApp.Models.Loan>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Выдачи";
+    var now    = DateTime.UtcNow;
+    var sorted = Model
+        .OrderBy(l => l.ReturnedAt != null)
+        .ThenBy(l => l.IssuedAt);
 }
 
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="fw-bold mb-0" style="color: var(--blue-dk);">📋 Выдачи книг</h3>
+        <span class="text-muted small">Управление активными и завершёнными выдачами</span>
+    </div>
+    <a asp-action="Create" class="btn btn-success btn-sm">+ Создать выдачу</a>
+</div>
 
-<h1>Выдачи</h1>
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        ⚠️ @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        ✅ @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
 
-<p>
-    <a asp-action="Create">Добавить</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.IssuedAt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DueDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ExtensionsCount)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ReturnedAt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.User)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ExampleBook)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.IssuedAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DueDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ExtensionsCount)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ReturnedAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.User.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ExampleBook.ExampleBookId)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.LoanId">Изменить</a> |
-                <a asp-action="Details" asp-route-id="@item.LoanId">Подробнее</a> |
-                <a asp-action="Delete" asp-route-id="@item.LoanId">Удалить</a>
-                @if (item.ReturnedAt == null)
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Выдач пока нет.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle shadow-sm rounded overflow-hidden">
+            <thead style="background: var(--blue-dk); color:#fff;">
+                <tr>
+                    <th>ID</th>
+                    <th>Читатель (ID)</th>
+                    <th>Экземпляр</th>
+                    <th>Выдана</th>
+                    <th>Срок возврата</th>
+                    <th>Продлений</th>
+                    <th>Возвращена</th>
+                    <th>Статус</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in sorted)
                 {
-                    <span> | </span>
-                    <a asp-controller="ReturnBook" asp-action="Accept"
-                       asp-route-loanId="@item.LoanId"
-                       class="btn btn-sm btn-outline-primary">
-                        📥 Принять
-                    </a>
-                }
-            </td>
-        </tr>
-    }
-    </tbody>
+                    var isOverdue   = item.ReturnedAt == null && item.DueDate < now;
+                    var isReturned  = item.ReturnedAt != null;
+                    var daysLeft    = (item.DueDate - now).Days;
 
-</table>
+                    <tr class="@(isOverdue ? "table-danger" : "")">
+                        <td class="text-muted font-monospace">@item.LoanId</td>
+                        <td>
+                            <span class="badge bg-secondary font-monospace">
+                                #@item.UserId
+                            </span>
+                            @if (item.User != null)
+                            {
+                                <span class="text-muted small ms-1">@item.User.FullName</span>
+                            }
+                        </td>
+                        <td class="font-monospace">@item.ExampleBook?.ExampleBookId</td>
+                        <td class="text-muted small">
+                            @item.IssuedAt.ToString("dd.MM.yyyy")
+                        </td>
+                        <td>
+                            @if (isOverdue)
+                            {
+                                <span class="text-danger fw-semibold">
+                                    ⚠️ @item.DueDate.ToString("dd.MM.yyyy")
+                                </span>
+                            }
+                            else
+                            {
+                                <span>@item.DueDate.ToString("dd.MM.yyyy")</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            @if (item.ExtensionsCount > 0)
+                            {
+                                <span class="badge bg-info">@item.ExtensionsCount</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">0</span>
+                            }
+                        </td>
+                        <td class="text-muted small">
+                            @(item.ReturnedAt.HasValue
+                                ? item.ReturnedAt.Value.ToString("dd.MM.yyyy")
+                                : "—")
+                        </td>
+                        <td>
+                            @if (isReturned)
+                            {
+                                <span class="badge bg-success">✅ Возвращена</span>
+                            }
+                            else if (isOverdue)
+                            {
+                                <span class="badge bg-danger">🔴 Просрочена</span>
+                            }
+                            else if (daysLeft <= 3)
+                            {
+                                <span class="badge bg-warning text-dark">
+                                    ⏳ @daysLeft дн.
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-primary">📤 На руках</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1 flex-wrap">
+                                <a asp-action="Details" asp-route-id="@item.LoanId"
+                                   class="btn btn-outline-secondary btn-sm">🔍</a>
+                                <a asp-action="Edit" asp-route-id="@item.LoanId"
+                                   class="btn btn-outline-primary btn-sm">✏️</a>
+                                <a asp-action="Delete" asp-route-id="@item.LoanId"
+                                   class="btn btn-outline-danger btn-sm">🗑️</a>
+                                @if (!isReturned)
+                                {
+                                    <a asp-controller="ReturnBook" asp-action="Accept"
+                                       asp-route-loanId="@item.LoanId"
+                                       class="btn btn-sm btn-outline-success">
+                                        📥 Принять
+                                    </a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

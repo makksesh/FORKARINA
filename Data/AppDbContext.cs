@@ -99,6 +99,17 @@ public class AppDbContext : DbContext
              .WithMany(v => v.ExampleBooks)
              .HasForeignKey(eb => eb.VersionBookId)
              .OnDelete(DeleteBehavior.Restrict);
+            
+            e.Property(eb => eb.Status)
+                .HasConversion<string>()
+                .HasMaxLength(20);
+
+            e.Property(eb => eb.Condition)
+                .HasConversion<string>()
+                .HasMaxLength(20);
+
+            e.Property(eb => eb.ShelfCode)
+                .HasMaxLength(20);
         });
 
         // ─── Role ─────────────────────────────────────────────

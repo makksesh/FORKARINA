@@ -1,66 +1,76 @@
 @model IEnumerable<LibApp.Models.User>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Пользователи";
 }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="fw-bold mb-0" style="color: var(--blue-dk);">👥 Пользователи</h3>
+        <span class="text-muted small">Управление учётными записями системы</span>
+    </div>
+    <a asp-action="Create" class="btn btn-success btn-sm">+ Добавить</a>
+</div>
 
 @if (ViewBag.ErrorMessage != null)
 {
-    <div class="alert alert-danger">
-        @ViewBag.ErrorMessage
+    <div class="alert alert-danger alert-dismissible fade show">
+        ⚠️ @ViewBag.ErrorMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
 
-<h1>Пользователи</h1>
-
-<p>
-    <a asp-action="Create">Добавить</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Login)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Email)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FullName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PhoneNumber)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Role)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Login)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.FullName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PhoneNumber)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Role.Name)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.UserId">Изменить</a> |
-                <a asp-action="Details" asp-route-id="@item.UserId">Подробнее</a> |
-                <a asp-action="Delete" asp-route-id="@item.UserId">Удалить</a>
-            </td>
-        </tr>
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Пользователи не найдены.</div>
 }
-    </tbody>
-</table>
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle shadow-sm rounded overflow-hidden">
+            <thead style="background: var(--blue-dk); color:#fff;">
+                <tr>
+                    <th>ID</th>
+                    <th>@Html.DisplayNameFor(m => m.Login)</th>
+                    <th>@Html.DisplayNameFor(m => m.FullName)</th>
+                    <th>@Html.DisplayNameFor(m => m.Email)</th>
+                    <th>@Html.DisplayNameFor(m => m.PhoneNumber)</th>
+                    <th>@Html.DisplayNameFor(m => m.Role)</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    var roleClass = item.Role?.Name switch
+                    {
+                        "Admin"     => "danger",
+                        "Librarian" => "primary",
+                        "Reader"    => "secondary",
+                        _           => "secondary"
+                    };
+                    <tr>
+                        <td class="text-muted font-monospace">@item.UserId</td>
+                        <td class="fw-semibold">@item.Login</td>
+                        <td>@item.FullName</td>
+                        <td class="text-muted small">@item.Email</td>
+                        <td class="text-muted small">@(item.PhoneNumber ?? "—")</td>
+                        <td>
+                            <span class="badge bg-@roleClass">@item.Role?.Name</span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a asp-action="Details" asp-route-id="@item.UserId"
+                                   class="btn btn-outline-secondary btn-sm">🔍</a>
+                                <a asp-action="Edit" asp-route-id="@item.UserId"
+                                   class="btn btn-outline-primary btn-sm">✏️</a>
+                                <a asp-action="Delete" asp-route-id="@item.UserId"
+                                   class="btn btn-outline-danger btn-sm">🗑️</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

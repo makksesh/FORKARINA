@@ -78,6 +78,7 @@ else
                     <th>Год</th>
                     <th>Всего</th>
                     <th>Свободно</th>
+                    <th>Полка</th> 
                     <th>Действие</th>
                 </tr>
             </thead>
@@ -105,13 +106,26 @@ else
                             }
                         </td>
                         <td>
+                            @if (!string.IsNullOrEmpty(item.ShelfCode))
+                            {
+                                <span class="badge bg-light text-dark border font-monospace">
+                                    📍 @item.ShelfCode
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">—</span>
+                            }
+                        </td>
+                        <td>
                             @if (item.FreeExampleBookId.HasValue)
                             {
                                 <button class="btn btn-sm btn-success"
                                         data-bs-toggle="modal"
                                         data-bs-target="#issueDueDateModal"
                                         data-example-id="@item.FreeExampleBookId"
-                                        data-book-title="@item.Title">
+                                        data-book-title="@item.Title"
+                                        data-shelf-code="@item.ShelfCode">
                                     Выдать
                                 </button>
                             }
@@ -129,7 +143,7 @@ else
     </div>
 }
 
-@* ── Модалка для ввода даты возврата ── *@
+@* ── Для ввода даты возврата ── *@
 <div class="modal fade" id="issueDueDateModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -144,6 +158,10 @@ else
                 <div class="modal-body">
                     <p class="text-muted mb-3">
                         Книга: <strong id="modalBookTitle"></strong>
+                    </p>
+                    <p class="text-muted mb-3">
+                        Полка: <span class="badge bg-light text-dark border font-monospace"
+                                     id="modalShelfCode"></span>
                     </p>
                     <label class="form-label">Дата возврата (DueDate)</label>
                     <input type="date" name="dueDate" class="form-control" required
@@ -169,6 +187,8 @@ else
                     btn.getAttribute('data-example-id');
                 document.getElementById('modalBookTitle').textContent =
                     btn.getAttribute('data-book-title');
+                const shelf = btn.getAttribute('data-shelf-code');
+                document.getElementById('modalShelfCode').textContent = shelf || '—';
             });
-    </script>
+    </script>   
 }

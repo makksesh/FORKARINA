@@ -4,6 +4,8 @@ using LibApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Rendering;
+
 
 public class ExampleBooksController : Controller
 {
@@ -14,13 +16,213 @@ public class ExampleBooksController : Controller
         _context = context;
     }
     
+    [Authorize(Roles = "Admin,Librarian")]
+    [HttpGet]
+    public async Task<IActionResult> Index(string? search, string? category, string? status)
+    {
+        var query = _context.ExampleBooks
+            .Include(eb => eb.VersionBook)
+                .ThenInclude(v => v.Book)
+                    .ThenInclude(b => b.Author)
+            .Include(eb => eb.VersionBook)
+                .ThenInclude(v => v.Book)
+                    .ThenInclude(b => b.Category)
+            .AsQueryable();
+        
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            if (long.TryParse(search.Trim(), out var id))
+                query = query.Where(eb => eb.ExampleBookId == id);
+            else
+                query = query.Where(eb =>
+                    eb.VersionBook.Book.Name.Contains(search) ||
+                    eb.VersionBook.Book.Author.FullName.Contains(search));
+        }
+
+        if (!string.IsNullOrWhiteSpace(category))
+            query = query.Where(eb => eb.VersionBook.Book.Category.Name == category);
+
+        if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<BookStatus>(status, out var parsedStatus))
+            query = query.Where(eb => eb.Status == parsedStatus);
+
+        var examples = await query.ToListAsync();
+
+        var exampleIds = examples.Select(eb => eb.ExampleBookId).ToList();
+        var busyIds = await _context.Loans
+            .Where(l => exampleIds.Contains(l.ExampleBookId) && l.ReturnedAt == null)
+            .Select(l => l.ExampleBookId)
+            .ToListAsync();
+
+        var model = examples.Select(eb => new ExampleBookCatalogItem
+        {
+            ExampleBookId = eb.ExampleBookId,
+            Title         = eb.VersionBook.Book.Name,
+            Author        = eb.VersionBook.Book.Author.FullName,
+            Category      = eb.VersionBook.Book.Category.Name,
+            ShelfCode     = eb.ShelfCode,
+            Status        = eb.Status,
+            Condition     = eb.Condition,
+            IsOnLoan      = busyIds.Contains(eb.ExampleBookId)
+        }).ToList();
+
+        ViewBag.Search           = search;
+        ViewBag.SelectedCategory = category;
+        ViewBag.SelectedStatus   = status;
+        ViewBag.Categories       = await _context.Categories.Select(c => c.Name).ToListAsync();
+        ViewBag.Statuses         = Enum.GetValues<BookStatus>()
+            .Select(s => new SelectListItem(s.ToString(), s.ToString()))
+            .ToList();
+
+        return View(model);
+    }
+    
+    public async Task<IActionResult> Details(long? id)
+    {
+        if (id == null) return NotFound();
+
+        var eb = await _context.ExampleBooks
+            .Include(e => e.VersionBook).ThenInclude(v => v.Book).ThenInclude(b => b.Author)
+            .Include(e => e.VersionBook).ThenInclude(v => v.Book).ThenInclude(b => b.Category)
+            .FirstOrDefaultAsync(e => e.ExampleBookId == id);
+
+        if (eb == null) return NotFound();
+        return View(eb);
+    }
+
+    #region Create
+
+    public IActionResult Create()
+    {
+        ViewData["VersionBookId"] = new SelectList(
+            _context.VersionBooks
+                .Include(v => v.Book)
+                .Select(v => new { v.VersionBookId, Display = v.Book.Name + " (" + v.Name + ")" }),
+            "VersionBookId", "Display");
+        return View();
+    }
+    
+    [Authorize(Roles = "Admin,Librarian")]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(
+        [Bind("VersionBookId,ShelfCode,Status,Condition")] ExampleBook eb)
+    {
+        if (ModelState.IsValid)
+        {
+            _context.Add(eb);
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Экземпляр успешно добавлен.";
+            return RedirectToAction(nameof(Index));
+        }
+        ViewData["VersionBookId"] = new SelectList(
+            _context.VersionBooks.Include(v => v.Book)
+                .Select(v => new { v.VersionBookId, Display = v.Book.Name + " (" + v.Name + ")" }),
+            "VersionBookId", "Display", eb.VersionBookId);
+        return View(eb);
+    }
+
+    #endregion
+
+    #region Edit
+
+    public async Task<IActionResult> Edit(long? id)
+    {
+        if (id == null) return NotFound();
+        var eb = await _context.ExampleBooks.FindAsync(id);
+        if (eb == null) return NotFound();
+
+        ViewData["VersionBookId"] = new SelectList(
+            _context.VersionBooks.Include(v => v.Book)
+                .Select(v => new { v.VersionBookId, Display = v.Book.Name + " (" + v.Name + ")" }),
+            "VersionBookId", "Display", eb.VersionBookId);
+        return View(eb);
+    }
+    
+    [Authorize(Roles = "Admin,Librarian")]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(long id,
+        [Bind("ExampleBookId,VersionBookId,ShelfCode,Status,Condition")] ExampleBook eb)
+    {
+        if (id != eb.ExampleBookId) return NotFound();
+
+        if (ModelState.IsValid)
+        {
+            try
+            {
+                _context.Update(eb);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Экземпляр обновлён.";
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_context.ExampleBooks.Any(e => e.ExampleBookId == id)) return NotFound();
+                throw;
+            }
+            return RedirectToAction(nameof(Index));
+        }
+        ViewData["VersionBookId"] = new SelectList(
+            _context.VersionBooks.Include(v => v.Book)
+                .Select(v => new { v.VersionBookId, Display = v.Book.Name + " (" + v.Name + ")" }),
+            "VersionBookId", "Display", eb.VersionBookId);
+        return View(eb);
+    }
+
+    #endregion
+    
+    #region Delete
+
+    public async Task<IActionResult> Delete(long? id)
+    {
+        if (id == null) return NotFound();
+        var eb = await _context.ExampleBooks
+            .Include(e => e.VersionBook).ThenInclude(v => v.Book).ThenInclude(b => b.Author)
+            .FirstOrDefaultAsync(e => e.ExampleBookId == id);
+        if (eb == null) return NotFound();
+
+        var hasLoans = await _context.Loans.AnyAsync(l => l.ExampleBookId == id);
+        if (hasLoans)
+            ViewBag.ErrorMessage = "Нельзя удалить экземпляр: по нему есть выдачи.";
+
+        return View(eb);
+    }
+    
+    [Authorize(Roles = "Admin,Librarian")]
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(long id)
+    {
+        var hasLoans = await _context.Loans.AnyAsync(l => l.ExampleBookId == id);
+        if (hasLoans)
+        {
+            TempData["Error"] = "Нельзя удалить экземпляр: по нему есть выдачи.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var eb = await _context.ExampleBooks.FindAsync(id);
+        if (eb != null)
+        {
+            _context.ExampleBooks.Remove(eb);
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Экземпляр удалён.";
+        }
+        return RedirectToAction(nameof(Index));
+    }
+
+    #endregion
+
+
+    #region Catalog
+
+    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> Catalog(string? search, string? category)
     {
         var query = _context.VersionBooks
             .Include(v => v.Book)
             .ThenInclude(b => b.Author)
-            .Include(v => v.Book.Category)
+            .Include(v => v.Book)
+            .ThenInclude(b => b.Category)
             .Include(v => v.ExampleBooks)
             .AsQueryable();
 
@@ -32,48 +234,39 @@ public class ExampleBooksController : Controller
         }
 
         if (!string.IsNullOrWhiteSpace(category))
-        {
             query = query.Where(v => v.Book.Category.Name == category);
-        }
 
-        var versions = await query
-            .Include(v => v.ExampleBooks)
-            .ToListAsync();
-        
-        var versionIds = versions.SelectMany(v => v.ExampleBooks)
-                                 .Select(eb => eb.ExampleBookId)
-                                 .Distinct()
-                                 .ToList();
+        var versions = await query.ToListAsync();
 
-        var loans = await _context.Loans
-            .Where(l => versionIds.Contains(l.ExampleBookId) &&
-                        l.ReturnedAt == null)
+        var allExampleIds = versions
+            .SelectMany(v => v.ExampleBooks)
+            .Select(eb => eb.ExampleBookId)
+            .ToList();
+
+        var busyIds = await _context.Loans
+            .Where(l => allExampleIds.Contains(l.ExampleBookId) && l.ReturnedAt == null)
+            .Select(l => l.ExampleBookId)
             .ToListAsync();
 
         var model = versions.Select(v =>
         {
-            var exampleIds = v.ExampleBooks.Select(eb => eb.ExampleBookId).ToList();
-            var activeLoansForVersion = loans.Where(l => exampleIds.Contains(l.ExampleBookId)).ToList();
-
-            var total = exampleIds.Count;
-            var busy = activeLoansForVersion.Count;
-            var available = total - busy;
+            var available = v.ExampleBooks.Count(eb => !busyIds.Contains(eb.ExampleBookId));
 
             return new VersionCatalogItem
             {
-                VersionBookId = v.VersionBookId,
-                Title = v.Book.Name,
-                Author = v.Book.Author.FullName,
-                Category = v.Book.Category.Name,
-                Year = v.CreateAt.Year,
-                TotalExamples = total,
+                VersionBookId     = v.VersionBookId,
+                Title             = v.Book.Name,
+                Author            = v.Book.Author.FullName,
+                Category          = v.Book.Category.Name,
+                Year              = v.CreateAt.Year,
+                TotalExamples     = v.ExampleBooks.Count,
                 AvailableExamples = available
             };
         }).ToList();
 
-        ViewBag.Search = search;
+        ViewBag.Search           = search;
         ViewBag.SelectedCategory = category;
-        ViewBag.Categories = await _context.Categories
+        ViewBag.Categories       = await _context.Categories
             .Select(c => c.Name)
             .ToListAsync();
 
@@ -146,4 +339,5 @@ public class ExampleBooksController : Controller
         return RedirectToAction(nameof(Catalog));
     }
 
+    #endregion
 }

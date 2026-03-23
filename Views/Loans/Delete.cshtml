@@ -1,62 +1,79 @@
 @model LibApp.Models.Loan
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Удаление выдачи";
+    var canDelete  = ViewBag.ErrorMessage == null;
+    var isReturned = Model.ReturnedAt != null;
 }
-@if (ViewBag.ErrorMessage != null)
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="fw-bold mb-0 text-danger">🗑️ Удаление выдачи</h3>
+        <span class="text-muted small font-monospace">ID: @Model.LoanId</span>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← К списку</a>
+</div>
+
+@if (!canDelete)
 {
-    <div class="alert alert-danger">
-        @ViewBag.ErrorMessage
+    <div class="alert alert-danger d-flex align-items-center gap-2 mb-3" style="max-width:580px;">
+        <span style="font-size:1.3em;">⛔</span>
+        <span>@ViewBag.ErrorMessage</span>
     </div>
 }
-<h1>Удаление</h1>
 
-<h3>Вы уверены что хотите удалить ?</h3>
-<div>
-    <h4>Выдача</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IssuedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IssuedAt)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DueDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DueDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ExtensionsCount)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ExtensionsCount)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ReturnedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ReturnedAt)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.User)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.User.Email)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ExampleBook)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ExampleBook.ExampleBookId)
-        </dd>
-    </dl>
-    
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="LoanId" />
-        <input type="submit" value="Удалить" class="btn btn-danger" /> |
-        <a asp-action="Index">Вернуться к списку</a>
-    </form>
+<div class="card border-danger shadow-sm" style="max-width: 580px;">
+    <div class="card-header bg-danger bg-opacity-10 text-danger fw-semibold">
+        Вы действительно хотите удалить эту выдачу?
+    </div>
+    <div class="card-body">
+
+        <div class="row g-3 mb-3 pb-3 border-bottom">
+            <div class="col-6">
+                <span class="text-muted small d-block">Читатель</span>
+                <span class="badge bg-secondary font-monospace">#@Model.UserId</span>
+                @if (Model.User != null)
+                {
+                    <div class="small mt-1">@Model.User.FullName</div>
+                }
+            </div>
+            <div class="col-6">
+                <span class="text-muted small d-block">Экземпляр</span>
+                <span class="badge bg-secondary font-monospace">
+                    #@Model.ExampleBook?.ExampleBookId
+                </span>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-4">
+                <span class="text-muted small d-block">Выдана</span>
+                <strong>@Model.IssuedAt.ToString("dd.MM.yyyy")</strong>
+            </div>
+            <div class="col-4">
+                <span class="text-muted small d-block">Срок возврата</span>
+                <strong>@Model.DueDate.ToString("dd.MM.yyyy")</strong>
+            </div>
+            <div class="col-4">
+                <span class="text-muted small d-block">Возвращена</span>
+                <strong>
+                    @(Model.ReturnedAt.HasValue
+                        ? Model.ReturnedAt.Value.ToString("dd.MM.yyyy")
+                        : "—")
+                </strong>
+            </div>
+        </div>
+
+        <form asp-action="Delete">
+            <input type="hidden" asp-for="LoanId" />
+            <div class="d-flex gap-2">
+                @if (canDelete)
+                {
+                    <button type="submit" class="btn btn-danger w-100">🗑️ Да, удалить</button>
+                }
+                <a asp-action="Index" class="btn btn-outline-secondary w-100">Отмена</a>
+            </div>
+        </form>
+
+    </div>
 </div>

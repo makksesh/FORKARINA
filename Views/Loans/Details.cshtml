@@ -1,54 +1,121 @@
 @model LibApp.Models.Loan
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Детали выдачи";
+    var now        = DateTime.UtcNow;
+    var isReturned = Model.ReturnedAt != null;
+    var isOverdue  = !isReturned && Model.DueDate < now;
+    var daysLeft   = (Model.DueDate - now).Days;
 }
 
-<h1>Подробнее</h1>
-
-<div>
-    <h4>Выдача</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IssuedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IssuedAt)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DueDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DueDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ExtensionsCount)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ExtensionsCount)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ReturnedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ReturnedAt)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.User)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.User.Email)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ExampleBook)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ExampleBook.ExampleBookId)
-        </dd>
-    </dl>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="fw-bold mb-0" style="color: var(--blue-dk);">🔍 Детали выдачи</h3>
+        <span class="text-muted small font-monospace">ID: @Model.LoanId</span>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.LoanId"
+           class="btn btn-outline-primary btn-sm">✏️ Изменить</a>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← К списку</a>
+    </div>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.LoanId">Изменить</a> |
-    <a asp-action="Index">Вернуться к списку</a>
+
+@if (isOverdue)
+{
+    <div class="alert alert-danger d-flex align-items-center gap-2 mb-3" style="max-width:580px;">
+        <span style="font-size:1.3em;">⚠️</span>
+        <span>Выдача просрочена на <strong>@Math.Abs(daysLeft)</strong> дн.</span>
+    </div>
+}
+
+<div class="card shadow-sm" style="max-width: 580px;">
+    <div class="card-body">
+
+        @* Читатель и экземпляр *@
+        <div class="row g-3 mb-3 pb-3 border-bottom">
+            <div class="col-6">
+                <div class="text-muted small fw-semibold text-uppercase mb-1"
+                     style="letter-spacing:.05em;">Читатель</div>
+                <span class="badge bg-secondary font-monospace">#@Model.UserId</span>
+                @if (Model.User != null)
+                {
+                    <div class="fw-semibold mt-1">@Model.User.FullName</div>
+                    <div class="text-muted small">@Model.User.Email</div>
+                }
+            </div>
+            <div class="col-6">
+                <div class="text-muted small fw-semibold text-uppercase mb-1"
+                     style="letter-spacing:.05em;">Экземпляр</div>
+                <span class="badge bg-secondary font-monospace">
+                    #@Model.ExampleBook?.ExampleBookId
+                </span>
+                @if (Model.ExampleBook?.VersionBook?.Book != null)
+                {
+                    <div class="fw-semibold mt-1">
+                        @Model.ExampleBook.VersionBook.Book.Name
+                    </div>
+                    <div class="text-muted small">
+                        @Model.ExampleBook.VersionBook.Book.Author?.FullName
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* Даты *@
+        <div class="row g-3 mb-3 pb-3 border-bottom">
+            <div class="col-4">
+                <div class="text-muted small fw-semibold text-uppercase mb-1"
+                     style="letter-spacing:.05em;">Выдана</div>
+                <strong>@Model.IssuedAt.ToString("dd.MM.yyyy")</strong>
+            </div>
+            <div class="col-4">
+                <div class="text-muted small fw-semibold text-uppercase mb-1"
+                     style="letter-spacing:.05em;">Срок возврата</div>
+                <strong class="@(isOverdue ? "text-danger" : "")">
+                    @Model.DueDate.ToString("dd.MM.yyyy")
+                </strong>
+            </div>
+            <div class="col-4">
+                <div class="text-muted small fw-semibold text-uppercase mb-1"
+                     style="letter-spacing:.05em;">Возвращена</div>
+                @if (Model.ReturnedAt.HasValue)
+                {
+                    <strong class="text-success">
+                        @Model.ReturnedAt.Value.ToString("dd.MM.yyyy")
+                    </strong>
+                }
+                else { <span class="text-muted">—</span> }
+            </div>
+        </div>
+
+        @* Статус и продления *@
+        <div class="row g-3">
+            <div class="col-6">
+                <div class="text-muted small fw-semibold text-uppercase mb-1"
+                     style="letter-spacing:.05em;">Статус</div>
+                @if (isReturned)
+                {
+                    <span class="badge bg-success fs-6">✅ Возвращена</span>
+                }
+                else if (isOverdue)
+                {
+                    <span class="badge bg-danger fs-6">🔴 Просрочена</span>
+                }
+                else if (daysLeft <= 3)
+                {
+                    <span class="badge bg-warning text-dark fs-6">⏳ @daysLeft дн. осталось</span>
+                }
+                else
+                {
+                    <span class="badge bg-primary fs-6">📤 На руках</span>
+                }
+            </div>
+            <div class="col-6">
+                <div class="text-muted small fw-semibold text-uppercase mb-1"
+                     style="letter-spacing:.05em;">Количество продлений</div>
+                <strong>@Model.ExtensionsCount</strong>
+            </div>
+        </div>
+
+    </div>
 </div>

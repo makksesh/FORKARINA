@@ -50,65 +50,81 @@ public class ReturnBookController : Controller
         return View(vm);
     }
 
-    // POST: /ReturnBook/ReturnWithoutFine
+    // POST: /ReturnBook/ReturnBook
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ReturnWithoutFine(long loanId)
-    {
-        var loan = await _context.Loans
-            .FirstOrDefaultAsync(l => l.LoanId == loanId && l.ReturnedAt == null);
-
-        if (loan == null)
-            return NotFound();
-
-        loan.ReturnedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
-
-        TempData["Success"] = "Книга успешно принята. Штраф не начислен.";
-        return RedirectToAction("Index", "Loans");
-    }
-
-    // POST: /ReturnBook/ReturnWithFine
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ReturnWithFine(long loanId, decimal pricePerDay)
+    public async Task<IActionResult> ReturnBook(
+        long loanId,
+        bool skipFine,           // нажата кнопка "без штрафа"
+        decimal pricePerDay,
+        bool isDamaged,
+        BookCondition newCondition,
+        decimal damageFineAmount,
+        string? damageComment)
     {
         var loan = await _context.Loans
             .Include(l => l.User)
+            .Include(l => l.ExampleBook)
             .FirstOrDefaultAsync(l => l.LoanId == loanId && l.ReturnedAt == null);
 
-        if (loan == null)
-            return NotFound();
+        if (loan == null) return NotFound();
 
         var now = DateTime.UtcNow;
         var overdueDays = (int)Math.Ceiling((now - loan.DueDate).TotalDays);
+        var messages = new List<string>();
 
-        if (overdueDays <= 0 || pricePerDay <= 0)
+        if (!skipFine)
         {
-            TempData["Error"] = "Некорректные данные для штрафа.";
-            return RedirectToAction("Accept", new { loanId });
+            var librarianIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!long.TryParse(librarianIdStr, out var librarianId))
+                return Unauthorized();
+
+            // Штраф за просрочку
+            if (overdueDays > 0 && pricePerDay > 0)
+            {
+                _context.Fines.Add(new Fine
+                {
+                    ReaderId = loan.UserId,
+                    LibrarianId = librarianId,
+                    Amount = pricePerDay * overdueDays,
+                    IssuedAt = now,
+                    Reason = $"Просрочка {overdueDays} дн. × {pricePerDay:F2} ₽/день"
+                });
+                messages.Add($"Штраф за просрочку: {pricePerDay * overdueDays:F2} ₽");
+            }
+
+            // Штраф за повреждение
+            if (isDamaged && damageFineAmount > 0)
+            {
+                _context.Fines.Add(new Fine
+                {
+                    ReaderId = loan.UserId,
+                    LibrarianId = librarianId,
+                    Amount = damageFineAmount,
+                    IssuedAt = now,
+                    Reason = $"Повреждение: {damageComment ?? "без комментария"}"
+                });
+                messages.Add($"Штраф за повреждение: {damageFineAmount:F2} ₽");
+            }
         }
 
-        var librarianIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!long.TryParse(librarianIdStr, out var librarianId))
-            return Unauthorized();
-
-        var fine = new Fine
+        // Обновляем состояние экземпляра
+        if (loan.ExampleBook != null)
         {
-            ReaderId = loan.UserId,
-            LibrarianId = librarianId,
-            Amount = pricePerDay * overdueDays,
-            IssuedAt = DateTime.UtcNow,
-            Reason = $"Просрочка {overdueDays} дн. × {pricePerDay:F2} ₽/день"
-        };
+            if (isDamaged && !skipFine)
+                loan.ExampleBook.Condition = newCondition;
 
-        _context.Fines.Add(fine);
+            loan.ExampleBook.Status = BookStatus.Available;
+        }
 
-        loan.ReturnedAt = DateTime.UtcNow;
-
+        loan.ReturnedAt = now;
         await _context.SaveChangesAsync();
 
-        TempData["Success"] = $"Штраф {fine.Amount:F2} ₽ начислен. Книга принята.";
+        TempData["Success"] = messages.Count > 0
+            ? string.Join(" | ", messages)
+            : "Книга принята без штрафов.";
+
         return RedirectToAction("Index", "Loans");
     }
+
 }

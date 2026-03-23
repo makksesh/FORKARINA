@@ -30,12 +30,19 @@
         </div>
         <div>
             <h4 class="mb-0 fw-bold">@Model.User.FullName</h4>
-            <div class="text-muted small">@Model.User.Email · @(Model.User.PhoneNumber ?? "—")</div>
+            <div class="text-muted small">
+                @Model.User.Email · @(Model.User.PhoneNumber ?? "—")
+            </div>
+            <div class="text-muted small mt-1">
+                ID: <span class="font-monospace fw-semibold">@Model.User.UserId</span>
+                · Логин: <span class="font-monospace">@Model.User.Login</span>
+            </div>
             <span class="badge mt-1" style="background: var(--blue-dk);">@Model.User.Role.Name</span>
         </div>
         <a asp-action="Edit" class="btn btn-sm btn-outline-secondary ms-auto">✏️ Редактировать</a>
     </div>
 </div>
+
 
 @* Всё ниже — только для читателей *@
 @if (!isStaff)

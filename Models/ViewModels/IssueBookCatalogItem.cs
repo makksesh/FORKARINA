@@ -11,4 +11,5 @@ public class IssueBookCatalogItem
     public int AvailableExamples { get; set; }
     
     public long? FreeExampleBookId { get; set; }
+    public string? ShelfCode { get; set; }
 }
