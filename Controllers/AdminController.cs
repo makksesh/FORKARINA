@@ -1,4 +1,5 @@
 using LibApp.Data;
+using LibApp.Models;
 using LibApp.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,41 +16,68 @@ public class AdminController : Controller
 
     public async Task<IActionResult> BookStats(string? search)
     {
-
         var versions = await _db.VersionBooks
             .Include(v => v.Book).ThenInclude(b => b.Author)
             .Include(v => v.ExampleBooks)
             .ToListAsync();
 
-
+        // Берём только «живые» экземпляры (не утеряны, не списаны, не в ремонте)
         var allExampleIds = versions
             .SelectMany(v => v.ExampleBooks)
+            .Where(eb => eb.Status != BookStatus.Lost &&
+                         eb.Status != BookStatus.Restoration &&
+                         eb.Status != BookStatus.WriteOff)
             .Select(eb => eb.ExampleBookId)
             .ToList();
 
-        var activeExampleIds = await _db.Loans
-            .Where(l => allExampleIds.Contains(l.ExampleBookId) && l.ReturnedAt == null)
+        // Активные займы среди этих живых экземпляров
+        var busyIds = await _db.Loans
+            .Where(l => allExampleIds.Contains(l.ExampleBookId) &&
+                        l.ReturnedAt == null)
             .Select(l => l.ExampleBookId)
             .ToHashSetAsync();
 
+        // Можно дополнительно подстраховаться по статусу (OnLoan/Reserved)
+        var notAvailableByStatusIds = await _db.ExampleBooks
+            .Where(e => allExampleIds.Contains(e.ExampleBookId) &&
+                        e.Status != BookStatus.Available)
+            .Select(e => e.ExampleBookId)
+            .ToHashSetAsync();
+
+        // Итоговый набор недоступных ID
+        var notAvailableIds = busyIds.Union(notAvailableByStatusIds).ToHashSet();
 
         var query = versions
             .GroupBy(v => v.Book)
-            .Select(g => new AdminBookStatsItem
+            .Select(g =>
             {
-                BookId    = g.Key.BookId,
-                Title     = g.Key.Name,
-                Author    = g.Key.Author.FullName,
-                TotalCopies  = g.SelectMany(v => v.ExampleBooks).Count(),
-                IssuedCount  = g.SelectMany(v => v.ExampleBooks)
-                    .Count(eb => activeExampleIds.Contains(eb.ExampleBookId))
+                // Только живые экземпляры этой книги
+                var examples = g.SelectMany(v => v.ExampleBooks)
+                    .Where(eb => eb.Status != BookStatus.Lost &&
+                                 eb.Status != BookStatus.Restoration &&
+                                 eb.Status != BookStatus.WriteOff)
+                    .ToList();
+
+                var total = examples.Count;
+                var issued = examples.Count(eb => notAvailableIds.Contains(eb.ExampleBookId));
+
+                return new AdminBookStatsItem
+                {
+                    BookId       = g.Key.BookId,
+                    Title        = g.Key.Name,
+                    Author       = g.Key.Author.FullName,
+                    TotalCopies  = total,
+                    IssuedCount  = issued
+                    // AvailableCount у тебя считается как TotalCopies - IssuedCount в самой модели
+                };
             });
 
-
         if (!string.IsNullOrWhiteSpace(search))
+        {
             query = query.Where(x =>
                 x.Title.Contains(search, StringComparison.OrdinalIgnoreCase) ||
                 x.Author.Contains(search, StringComparison.OrdinalIgnoreCase));
+        }
 
         ViewBag.Search = search;
         return View(query.OrderBy(x => x.Title).ToList());

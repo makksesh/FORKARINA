@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using LibApp.Data;
 using LibApp.Models.ViewModels;
 using LibApp.Models;
@@ -265,11 +266,16 @@ public class ExampleBooksController : Controller
             .Where(l => allExampleIds.Contains(l.ExampleBookId) && l.ReturnedAt == null)
             .Select(l => l.ExampleBookId)
             .ToListAsync();
+        
+        var notAvailableIds = await _context.ExampleBooks
+            .Where(e => allExampleIds.Contains(e.ExampleBookId) && e.Status != BookStatus.Available)
+            .Select(eb => eb.ExampleBookId)
+            .ToListAsync();
 
         var model = versions.Select(v =>
         {
-            var available = v.ExampleBooks.Count(eb => !busyIds.Contains(eb.ExampleBookId));
-
+            var available = v.ExampleBooks.Count(eb => !busyIds.Contains(eb.ExampleBookId) && !notAvailableIds.Contains(eb.ExampleBookId));
+            
             return new VersionCatalogItem
             {
                 VersionBookId     = v.VersionBookId,
