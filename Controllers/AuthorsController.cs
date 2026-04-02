@@ -15,13 +15,14 @@ namespace LibApp.Controllers
         {
             _context = context;
         }
-
-        // GET: Authors
+        
         public async Task<IActionResult> Index()
         {
             return View(await _context.Authors.ToListAsync());
         }
-        
+
+        #region Details
+
         public async Task<IActionResult> Details(long? id)
         {
             if (id == null)
@@ -38,7 +39,11 @@ namespace LibApp.Controllers
 
             return View(author);
         }
-        
+
+        #endregion
+
+        #region Create
+
         public IActionResult Create()
         {
             return View();
@@ -56,7 +61,11 @@ namespace LibApp.Controllers
             }
             return View(author);
         }
-        
+
+        #endregion
+
+        #region Edit
+
         public async Task<IActionResult> Edit(long? id)
         {
             if (id == null)
@@ -103,7 +112,11 @@ namespace LibApp.Controllers
             }
             return View(author);
         }
-        
+
+        #endregion
+
+        #region Delete
+
         public async Task<IActionResult> Delete(long? id)
         {
             if (id == null)
@@ -156,5 +169,7 @@ namespace LibApp.Controllers
         {
             return _context.Authors.Any(e => e.AuthorId == id);
         }
+
+        #endregion
     }
 }

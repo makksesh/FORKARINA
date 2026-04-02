@@ -20,14 +20,12 @@ namespace LibApp.Controllers
         {
             _context = context;
         }
-
-        // GET: Categories
+        
         public async Task<IActionResult> Index()
         {
             return View(await _context.Categories.ToListAsync());
         }
-
-        // GET: Categories/Details/5
+        
         public async Task<IActionResult> Details(long? id)
         {
             if (id == null)

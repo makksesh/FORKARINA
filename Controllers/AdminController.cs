@@ -29,15 +29,13 @@ public class AdminController : Controller
                          eb.Status != BookStatus.WriteOff)
             .Select(eb => eb.ExampleBookId)
             .ToList();
-
-        // Активные займы среди этих живых экземпляров
+        
         var busyIds = await _db.Loans
             .Where(l => allExampleIds.Contains(l.ExampleBookId) &&
                         l.ReturnedAt == null)
             .Select(l => l.ExampleBookId)
             .ToHashSetAsync();
-
-        // Можно дополнительно подстраховаться по статусу (OnLoan/Reserved)
+        
         var notAvailableByStatusIds = await _db.ExampleBooks
             .Where(e => allExampleIds.Contains(e.ExampleBookId) &&
                         e.Status != BookStatus.Available)
@@ -51,7 +49,6 @@ public class AdminController : Controller
             .GroupBy(v => v.Book)
             .Select(g =>
             {
-                // Только живые экземпляры этой книги
                 var examples = g.SelectMany(v => v.ExampleBooks)
                     .Where(eb => eb.Status != BookStatus.Lost &&
                                  eb.Status != BookStatus.Restoration &&
@@ -68,7 +65,6 @@ public class AdminController : Controller
                     Author       = g.Key.Author.FullName,
                     TotalCopies  = total,
                     IssuedCount  = issued
-                    // AvailableCount у тебя считается как TotalCopies - IssuedCount в самой модели
                 };
             });
 

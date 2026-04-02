@@ -19,12 +19,10 @@ public class AccountController : Controller
     {
         _db = db;
     }
-
-    // GET: /Account/Login
+    
     [HttpGet]
     public IActionResult Login() => View();
-
-    // POST: /Account/Login
+    
     [HttpPost]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
@@ -60,12 +58,10 @@ public class AccountController : Controller
         
         return RedirectToAction("Index", "Home");
     }
-
-    // GET: /Account/Register
+    
     [HttpGet]
     public IActionResult Register() => View();
-
-    // POST: /Account/Register
+    
     [HttpPost]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
@@ -103,8 +99,7 @@ public class AccountController : Controller
         await SignInUser(user);
         return RedirectToAction("Index", "Home");
     }
-
-    // POST: /Account/Logout
+    
     [HttpPost]
     public async Task<IActionResult> Logout()
     {

@@ -20,15 +20,15 @@ namespace LibApp.Controllers
         {
             _context = context;
         }
-
-        // GET: Books
+        
         public async Task<IActionResult> Index()
         {
             var appDbContext = _context.Books.Include(b => b.Author).Include(b => b.Category);
             return View(await appDbContext.ToListAsync());
         }
 
-        // GET: Books/Details/5
+        #region Details
+
         public async Task<IActionResult> Details(long? id)
         {
             if (id == null)
@@ -48,7 +48,10 @@ namespace LibApp.Controllers
             return View(book);
         }
 
-        // GET: Books/Create
+        #endregion
+
+        #region Create
+
         public IActionResult Create()
         {
             ViewData["AuthorId"] = new SelectList(_context.Authors, "AuthorId", "FullName");
@@ -70,7 +73,11 @@ namespace LibApp.Controllers
             ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", book.CategoryId);
             return View(book);
         }
-        
+
+        #endregion
+
+        #region Edit
+
         public async Task<IActionResult> Edit(long? id)
         {
             if (id == null)
@@ -121,7 +128,11 @@ namespace LibApp.Controllers
             ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", book.CategoryId);
             return View(book);
         }
-        
+
+        #endregion
+
+        #region Delete
+
         public async Task<IActionResult> Delete(long? id)
         {
             if (id == null)
@@ -181,5 +192,7 @@ namespace LibApp.Controllers
         {
             return _context.Books.Any(e => e.BookId == id);
         }
+
+        #endregion
     }
 }
